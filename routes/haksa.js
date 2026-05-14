@@ -94,7 +94,75 @@ router.post('/pro/delete', async function(req,res){
 router.get('/stu', function(req, res, next) {
   res.render('index', { title: '학생관리' , pageName: "haksa/students.ejs"});
 });
-
+/*학생 데이터 출력*/
+router.get('/stu/list.json', async function(req, res){
+  let con;
+  try{
+    con = await getConnection();
+    let sql = "select * from view_students";
+    const result = await con.execute(sql,{},{outFormat:oracledb.OUT_FORMAT_OBJECT});
+    //console.log(result.rows);
+    res.send(result.rows);
+  }catch(err){
+    console.log(err);
+  }finally{
+    if(con) await con.close();
+  }
+}); 
+/* 학생 입력 페이지 */
+router.get('/stu/insert',async function(req,res){
+  let con;
+  let code;
+  try{
+    con = await getConnection();
+    let sql ="select max(scode) + 1 from students";
+    let result = await con.execute(sql);
+    code = result.rows[0][0];
+    console.log('.............',code);
+  }catch(err){
+    console.log(err);
+  }finally{
+    if(con) await con.close();
+  }
+  res.render('index',{title:'학생등록',pageName: "haksa/students_insert.ejs",code})
+});
+/* 학생 등록 */
+router.post('/stu/insert', async function(req, res){
+  const scode = req.body.scode;
+  const sname = req.body.sname;
+  const dept = req.body.dept;
+  const year = req.body.year;
+  const birthday = req.body.birthday;
+  const advisor = req.body.pcode;
+  console.log(scode,sname,dept,year,birthday,advisor);
+  let con;
+  try {
+    con = await getConnection();
+    let sql = "insert into students(scode,sname,dept,year,birthday,advisor)";
+    sql += " values(:scode,:sname,:dept,:year,:birthday,:advisor)";
+    await con.execute(sql,{scode,sname,dept,year,birthday,advisor},{autoCommit:true});
+    res.sendStatus(200); 
+  }catch(err){
+    res.sendStatus(500);
+  }finally{
+    if (con) await con.close();
+  }
+});
+/* 학생 삭제 */
+router.post('/stu/delete',async function(req,res){
+  const scode =req.body.scode;
+  let con;
+  try{
+    con = await getConnection();
+    let sql ="delete from students where scode=:scode";
+    await con.execute(sql,{scode},{autoCommit:true});
+    res.sendStatus(200);
+  }catch(err){
+    res.sendStatus(500);
+  }finally{
+    if (con) await con.close();
+  }
+});
 /* 강좌페이지 이동 */
 router.get('/cou', function(req, res, next) {
   res.render('index', { title: '강좌관리' , pageName: "haksa/courses.ejs"});

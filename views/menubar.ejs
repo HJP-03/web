@@ -33,3 +33,11 @@
     </div>
   </div>
 </nav>
+<script>
+    $(document).ready(function(){
+        const pathname=window.location.pathname;
+        const path=pathname.split('/').slice(0, 3).join('/');
+        $(".nav-link").removeClass('active');
+        $(`.nav-link[href='${path}']`).addClass('active');
+    });
+</script>
